@@ -18,16 +18,21 @@ public class TelemetryProcessor {
     /**
      * Procesa un mensaje de texto recibido por UDP y devuelve la respuesta
      * correspondiente según las reglas del protocolo de telemetría.
-     * 
+     *
      * @param rawMessage Mensaje en texto plano recibido en el datagrama UDP.
      * @return Respuesta que será enviada de regreso al cliente emisor.
      */
     public String process(String rawMessage) {
         // TODO Paso 1.1: Validar que el mensaje no sea nulo ni esté vacío (usar trim()).
         // Si no es válido, retornar "ERROR;INVALID_FORMAT".
+        if (rawMessage == null || rawMessage.trim().isEmpty()) {
+            return "ERROR;INVALID_FORMAT";
+        }
 
         // TODO Paso 1.2: Separar el mensaje usando el delimitador ";".
         // Si el arreglo resultante está vacío, retornar "ERROR;INVALID_FORMAT".
+        String[] parts = rawMessage.split(";");
+
 
         // TODO Paso 1.3: Si la primera parte es "STATUS" (ignorar mayúsculas/minúsculas):
         //   - Validar que tenga exactamente 2 partes y que el DEVICE_ID no esté en blanco.
@@ -35,12 +40,39 @@ public class TelemetryProcessor {
         //   - Buscar en 'lastReadings' por DEVICE_ID.
         //   - Si no existe, retornar "ERROR;DEVICE_NOT_FOUND".
         //   - Si existe, retornar "STATUS_OK;DEVICE_ID;SENSOR_TYPE;VALUE".
+        if (parts[0].trim().equalsIgnoreCase("status")) {
+            if (parts.length != 2 || parts[1].trim().isEmpty()) {
+                return "ERROR;INVALID_FORMAT";
+            }
+            //Map<String, TelemetryData> lastReadings
+            String key = parts[1];
+            TelemetryData data = lastReadings.get(key);
+            if (data == null) {
+                return "ERROR;DEVICE_NOT_FOUND";
+            } else {
+                return "STATUS_OK;DEVICE_ID;SENSOR_TYPE;VALUE";
+            }
+        }
+
+
 
         // TODO Paso 1.4: Validar formato de telemetría: deben ser exactamente 3 partes no vacías:
         // [0] = deviceId, [1] = sensorType, [2] = valueStr.
         // Si no cumple, retornar "ERROR;INVALID_FORMAT".
         // Intentar convertir valueStr a double (Double.parseDouble).
         // Si falla con NumberFormatException, retornar "ERROR;INVALID_FORMAT".
+        if (parts.length != 3||parts[0].trim().isEmpty()||parts[1].trim().isEmpty()||parts[2].trim().isEmpty()) {
+            return "ERROR;INVALID_FORMAT";
+        }
+
+        try{
+            double valor=Double.parseDouble(parts[2].trim());
+        }
+        catch(NumberFormatException e){
+            return "ERROR;INVALID_FORMAT";
+        }
+
+
 
         // TODO Paso 1.5: Guardar la lectura válida en 'lastReadings':
         // lastReadings.put(deviceId, new TelemetryData(deviceId, sensorType, value));
@@ -59,9 +91,10 @@ public class TelemetryProcessor {
         //     otro         -> "OK;BATTERY_OK;" + value
         // - Cualquier otro sensorType:
         //     retornar "ERROR;UNKNOWN_SENSOR_TYPE"
-
-        return "ERROR;NOT_IMPLEMENTED"; // Reemplazar con su implementación
+        return "Hola";
     }
+
+
 
     public Map<String, TelemetryData> getLastReadings() {
         return lastReadings;
