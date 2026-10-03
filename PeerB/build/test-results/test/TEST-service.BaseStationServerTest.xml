@@ -1,8 +1,0 @@
-<?xml version="1.0" encoding="UTF-8"?>
-<testsuite name="service.BaseStationServerTest" tests="2" skipped="0" failures="0" errors="0" timestamp="2026-10-03T22:15:29.338Z" hostname="DESKTOP-ISM6GUQ" time="0.069">
-  <properties/>
-  <testcase name="IT-02: El servidor procesa múltiples solicitudes de diferentes dispositivos" classname="service.BaseStationServerTest" time="0.058"/>
-  <testcase name="IT-01: El servidor recibe datagrama UDP y responde correctamente al remitente" classname="service.BaseStationServerTest" time="0.008"/>
-  <system-out><![CDATA[]]></system-out>
-  <system-err><![CDATA[]]></system-err>
-</testsuite>
