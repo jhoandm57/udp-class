@@ -1,12 +1,17 @@
-// PeerA/build.gradle 
+// PeerA/build.gradle
 
 application {
     mainClass = "ui.Main"
 }
 
+run {
+    standardInput = System.in
+}
+
 jar {
     manifest {
-	attributes 'Main-Class': 'ui.Main'
+        attributes 'Main-Class': 'ui.Main'
     }
+
     archiveBaseName = 'peer-a'
 }
