@@ -40,18 +40,20 @@ public class TelemetryProcessor {
         //   - Buscar en 'lastReadings' por DEVICE_ID.
         //   - Si no existe, retornar "ERROR;DEVICE_NOT_FOUND".
         //   - Si existe, retornar "STATUS_OK;DEVICE_ID;SENSOR_TYPE;VALUE".
-        if (parts[0].trim().equalsIgnoreCase("status")) {
+        if (parts.length>0&& parts[0].trim().equalsIgnoreCase("status")) {
+
             if (parts.length != 2 || parts[1].trim().isEmpty()) {
                 return "ERROR;INVALID_FORMAT";
             }
             //Map<String, TelemetryData> lastReadings
-            String key = parts[1];
-            TelemetryData data = lastReadings.get(key);
+            String deviceId = parts[1].trim();
+            TelemetryData data = lastReadings.get(deviceId);
             if (data == null) {
                 return "ERROR;DEVICE_NOT_FOUND";
-            } else {
-                return "STATUS_OK;DEVICE_ID;SENSOR_TYPE;VALUE";
             }
+
+            return "STATUS_OK;"+  data.getDeviceId() +";"+ data.getSensorType() + ";" + data.getValue();
+
         }
 
 
@@ -65,33 +67,77 @@ public class TelemetryProcessor {
             return "ERROR;INVALID_FORMAT";
         }
 
+        String deviceId = parts[0].trim();
+        String sensorType = parts[1].trim();
+        String valueStr = parts[2].trim();
+
+        double value;
         try{
-            double valor=Double.parseDouble(parts[2].trim());
+            value=Double.parseDouble(valueStr);
         }
         catch(NumberFormatException e){
             return "ERROR;INVALID_FORMAT";
+        }
+        //Parte del paso 1.6, validar los tipos
+        if (!sensorType.equalsIgnoreCase("TEMP")&& !sensorType.equalsIgnoreCase("HUMIDITY")&& !sensorType.equalsIgnoreCase("BATTERY")){
+            return "ERROR;UNKNOWN_SENSOR_TYPE";
         }
 
 
 
         // TODO Paso 1.5: Guardar la lectura válida en 'lastReadings':
         // lastReadings.put(deviceId, new TelemetryData(deviceId, sensorType, value));
+        TelemetryData data = new TelemetryData(deviceId, sensorType, value);
+        lastReadings.put(deviceId, data);
 
         // TODO Paso 1.6: Validar sensorType (TEMP, HUMIDITY, BATTERY) y evaluar rangos:
         // - TEMP:
         //     valor > 40.0 -> "ALERT;HIGH_TEMPERATURE;" + value
         //     valor < 0.0  -> "ALERT;FREEZING_TEMPERATURE;" + value
         //     otro         -> "OK;TEMP_RECORDED;" + value
+
+        if (sensorType.equalsIgnoreCase("TEMP")){
+            if (value>40.0){
+                return "ALERT;HIGH_TEMPERATURE;"+value;
+            }
+            else if (value<0.0){
+                return "ALERT;FREEZING_TEMPERATURE;"+value;
+            }
+            else{
+                return "OK;TEMP_RECORDED;"+value;
+            }
+        }
         // - HUMIDITY:
         //     valor > 90.0 -> "ALERT;HIGH_HUMIDITY;" + value
         //     valor < 20.0 -> "ALERT;LOW_HUMIDITY;" + value
         //     otro         -> "OK;HUMIDITY_RECORDED;" + value
+        else if(sensorType.equalsIgnoreCase("HUMIDITY")){
+            if (value>90.0){
+                return "ALERT;HIGH_HUMIDITY;"+ value;
+            }
+            else if(value<20.0){
+                return "ALERT;LOW_HUMIDITY;"+ value;
+            }
+            else{
+                return "OK;HUMIDITY_RECORDED;"+value;
+            }
+        }
         // - BATTERY:
         //     valor < 20.0 -> "ALERT;LOW_BATTERY;" + value
         //     otro         -> "OK;BATTERY_OK;" + value
         // - Cualquier otro sensorType:
         //     retornar "ERROR;UNKNOWN_SENSOR_TYPE"
-        return "Hola";
+        else if(sensorType.equalsIgnoreCase("BATTERY")){
+            if (value<20.0){
+                return "ALERT;LOW_BATTERY;"+ value;
+
+            }
+            else{
+                return "OK;BATTERY_OK;"+value;
+            }
+        }
+
+        return "ERROR;UNKNOWN_SENSOR_TYPE";
     }
 
 
